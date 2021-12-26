@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Area</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p id="peerId"></p>
+                <p class="text-primary" id="connectionStatus"></p>
+                <input id="peerInput" type="text" class="form-control" placeholder="Enter The Peer Id">
+                <button type="button" class="btn btn-info mt-4" id="connect">Connect</button>
+            </div>
+
+        </div>
+
+    </div>
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-md-6 p-2">
+                <video id="adminPreview"></video>
+                <h6>Admin Video</h6>
+
+            </div>
+            <div class="col-md-6 p-2">
+                <video id="userPreview"></video>
+                <h6>User Video</h6>
+                <button id="recieveCall" class="btn btn-success">Recieve Call</button>
+            </div>
+        </div>
+    </div>
+    <script src="./js/jquery-3.6.0.min.js"></script>
+    <script src="./js/peerjs.min.js"></script>
+    <script src="./js/bootstrap.bundle.min.js"></script>
+    <script>
+        let peer = new Peer()
+        peer.on('open', function(peerId) {
+            $("#peerId").html(`User Peer Id: ${peerId}`)
+        })
+        $("#connect").on('click', function() {
+            let peerId = $("#peerInput").val()
+            let conn = peer.connect(peerId)
+            conn.on('open', function() {
+                $("#connectionStatus").html('Connected')
+            })
+
+        })
+        let mediaConstraint = {
+            'video': true,
+            'audio': true
+        }
+
+        let userPreview = document.getElementById("userPreview")
+        let adminPreview = document.getElementById("adminPreview")
+
+        $("#recieveCall").on('click', function() {
+            peer.on('call', function(call) {
+                navigator.mediaDevices.getUserMedia(mediaConstraint)
+                    .then(function(stream) {
+                        //userPreview
+                        userPreview.srcObject = stream
+                        userPreview.play()
+
+                        call.answer(stream)
+
+                        call.on('stream', function(remoteStream) {
+                            //adminPreview
+                            adminPreview.srcObject = remoteStream
+                            adminPreview.play()
+                        })
+
+                    })
+                    .catch(function(error) {
+                        alert("Error")
+                    })
+            })
+        })
+    </script>
+</body>
+
+</html>
